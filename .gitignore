@@ -1,0 +1,5 @@
+bin/
+obj/
+.testdata/
+.releasetest/
+selftest.log

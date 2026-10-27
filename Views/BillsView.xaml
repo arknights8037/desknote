@@ -1,0 +1,188 @@
+<UserControl x:Class="DestNote.Views.BillsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:DestNote.Views"
+             Background="Transparent"
+             FontFamily="{StaticResource UiFont}">
+    <Grid ClipToBounds="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="20,1,20,7">
+            <StackPanel>
+                <TextBlock Text="今天花了" FontSize="9.5" Foreground="{DynamicResource MutedBrush}"/>
+                <TextBlock x:Name="TodayTotalText" Text="¥0.00" FontFamily="{StaticResource NumberFont}"
+                           FontSize="25" FontWeight="SemiBold" Margin="0,-1,0,0"/>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,3">
+                <TextBlock x:Name="WeekMiniText" Text="本周 ¥0.00 · 0 笔" FontSize="9.5"
+                           Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right"/>
+                <TextBlock x:Name="MonthMiniText" Text="本月 ¥0.00 · 0 笔" FontSize="9.5"
+                           Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" Margin="0,2,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="20,0,20,4">
+            <Border Background="{DynamicResource PaperDeepBrush}" CornerRadius="8" Padding="2"
+                    HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="DetailsTab" Content="明细" GroupName="BillSection" IsChecked="True"
+                                 Style="{StaticResource SectionTab}" Checked="Section_Checked" Tag="details"/>
+                    <RadioButton x:Name="WeekTab" Content="周报" GroupName="BillSection"
+                                 Style="{StaticResource SectionTab}" Checked="Section_Checked" Tag="week"/>
+                    <RadioButton x:Name="MonthTab" Content="月报" GroupName="BillSection"
+                                 Style="{StaticResource SectionTab}" Checked="Section_Checked" Tag="month"/>
+                </StackPanel>
+            </Border>
+            <TextBlock x:Name="BillCountText" HorizontalAlignment="Right" VerticalAlignment="Center"
+                       FontSize="9" Foreground="{DynamicResource FaintBrush}"/>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <!-- 明细 -->
+            <Grid x:Name="DetailsPage">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border x:Name="FormBorder" Grid.Row="0" Margin="20,4,20,5" Padding="11,9,11,8"
+                        Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource PaperLineBrush}"
+                        BorderThickness="1" CornerRadius="10">
+                    <StackPanel>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="¥" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource AccentBrush}" Margin="0,0,5,0"
+                                           VerticalAlignment="Center"/>
+                                <Grid Width="148" VerticalAlignment="Center">
+                                    <TextBox x:Name="AmountInput" FontFamily="{StaticResource NumberFont}"
+                                             FontSize="21" FontWeight="SemiBold" MaxLength="40"
+                                             AutomationProperties.Name="金额"
+                                             PreviewTextInput="AmountInput_PreviewTextInput"
+                                             PreviewKeyDown="AmountInput_PreviewKeyDown"
+                                             TextChanged="AmountInput_TextChanged"/>
+                                    <TextBlock x:Name="AmountPlaceholder" Text="0.00" FontFamily="{StaticResource NumberFont}"
+                                               FontSize="21" FontWeight="SemiBold" Foreground="{DynamicResource FaintBrush}"
+                                               IsHitTestVisible="False" VerticalAlignment="Center" Margin="0,0,0,2"/>
+                                </Grid>
+                            </StackPanel>
+                            <Button x:Name="DateButton" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Style="{StaticResource GhostButton}" Padding="8,5" Click="DateButton_Click"
+                                    AutomationProperties.Name="选择记账日期" ToolTip="选择记账日期">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock x:Name="DateButtonText" Text="今天" FontSize="10.5"/>
+                                    <TextBlock Text="&#xE787;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                                               Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <UniformGrid x:Name="CategoryGrid" Columns="8" Margin="0,6,0,2"
+                                     VerticalAlignment="Center"/>
+
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="{DynamicResource PaperDeepBrush}" CornerRadius="7" Height="30"
+                                    VerticalAlignment="Center">
+                                <Grid Margin="8,0">
+                                    <TextBox x:Name="NoteInput" FontSize="11.5" MaxLength="80"
+                                             AutomationProperties.Name="账单备注" PreviewKeyDown="NoteInput_PreviewKeyDown"/>
+                                    <TextBlock x:Name="NotePlaceholder" Text="备注（可选）" FontSize="11.5"
+                                               Foreground="{DynamicResource FaintBrush}" IsHitTestVisible="False"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                            <Button x:Name="AddBillButton" Grid.Column="1" Style="{StaticResource PrimaryButton}"
+                                    Content="记一笔" Height="30" MinWidth="68" Margin="6,0,0,0"
+                                    IsEnabled="False" Click="AddBill_Click"/>
+                        </Grid>
+
+                        <Grid Margin="0,5,0,0">
+                            <TextBlock x:Name="FormHintText" Text="记录今天的开销" FontSize="8.8"
+                                       Foreground="{DynamicResource FaintBrush}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="AmountPreviewText" Text="" FontSize="9" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" Margin="0,0,74,0" Visibility="Collapsed"/>
+                            <Button x:Name="CancelEditButton" Content="取消修改" Style="{StaticResource TextButton}"
+                                    FontSize="9.5" HorizontalAlignment="Right" Visibility="Collapsed"
+                                    Padding="3,0" Click="CancelEdit_Click"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Grid Grid.Row="1">
+                    <ScrollViewer x:Name="BillsScroll" VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled" Padding="20,0,20,8" Focusable="False">
+                        <StackPanel x:Name="BillsListPanel"/>
+                    </ScrollViewer>
+                    <StackPanel x:Name="BillsEmptyState" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                Margin="0,0,0,40" IsHitTestVisible="False">
+                        <Border Width="42" Height="42" CornerRadius="21" Background="{DynamicResource GoldSoftBrush}"
+                                HorizontalAlignment="Center">
+                            <TextBlock Text="&#xE8C7;" FontFamily="{StaticResource IconFont}" FontSize="16"
+                                       Foreground="{DynamicResource GoldBrush}" HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="还没有记过账" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                   Margin="0,9,0,2"/>
+                        <TextBlock Text="喝一杯咖啡，也可以从这一笔开始" FontSize="9.5"
+                                   Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <views:SummaryView x:Name="WeekSummary" Visibility="Collapsed"/>
+            <views:SummaryView x:Name="MonthSummary" Visibility="Collapsed"/>
+        </Grid>
+
+        <Popup x:Name="DatePopup" PlacementTarget="{Binding ElementName=DateButton}" Placement="Bottom"
+               VerticalOffset="5" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+            <Border Background="{DynamicResource CardStrongBrush}" BorderBrush="{DynamicResource PaperLineBrush}"
+                    BorderThickness="1" CornerRadius="10" Padding="8" Margin="8">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="14" ShadowDepth="4" Opacity="0.2"/>
+                </Border.Effect>
+                <StackPanel Width="238">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Button Content="今天" Style="{StaticResource TextButton}" FontSize="10"
+                                Padding="6,3" Tag="0" Click="QuickDate_Click"/>
+                        <Button Content="昨天" Style="{StaticResource TextButton}" FontSize="10"
+                                Padding="6,3" Tag="1" Click="QuickDate_Click"/>
+                        <Button Content="前天" Style="{StaticResource TextButton}" FontSize="10"
+                                Padding="6,3" Tag="2" Click="QuickDate_Click"/>
+                    </StackPanel>
+                    <Border Style="{StaticResource PaperSeparator}" Margin="0,0,0,5"/>
+                    <Grid Height="26">
+                        <Button x:Name="CalendarPrevButton" Style="{StaticResource TinyIconButton}"
+                                Content="&#xE76B;" HorizontalAlignment="Left" Click="CalendarPrev_Click"
+                                AutomationProperties.Name="上个月" ToolTip="上个月"/>
+                        <TextBlock x:Name="CalendarMonthText" Text="2026年10月" FontSize="10.5"
+                                   FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Button x:Name="CalendarNextButton" Style="{StaticResource TinyIconButton}"
+                                Content="&#xE76C;" HorizontalAlignment="Right" Click="CalendarNext_Click"
+                                AutomationProperties.Name="下个月" ToolTip="下个月"/>
+                    </Grid>
+                    <UniformGrid Columns="7" Margin="0,3,0,1">
+                        <TextBlock Text="一" FontSize="8.8" Foreground="{DynamicResource FaintBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="二" FontSize="8.8" Foreground="{DynamicResource FaintBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="三" FontSize="8.8" Foreground="{DynamicResource FaintBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="四" FontSize="8.8" Foreground="{DynamicResource FaintBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="五" FontSize="8.8" Foreground="{DynamicResource FaintBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="六" FontSize="8.8" Foreground="{DynamicResource FaintBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="日" FontSize="8.8" Foreground="{DynamicResource FaintBrush}" HorizontalAlignment="Center"/>
+                    </UniformGrid>
+                    <UniformGrid x:Name="CalendarDaysGrid" Columns="7" Rows="6"/>
+                    <TextBlock Text="只能记录今天及以前的账" FontSize="8.2"
+                               Foreground="{DynamicResource FaintBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

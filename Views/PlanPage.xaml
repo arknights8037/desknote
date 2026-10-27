@@ -1,0 +1,93 @@
+<UserControl x:Class="DestNote.Views.PlanPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent"
+             FontFamily="{StaticResource UiFont}">
+    <Grid Margin="12,0,10,7">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="92"/>
+            <ColumnDefinition Width="9"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="22"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="31"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <TextBlock Text="事务" FontSize="9" FontWeight="SemiBold"
+                           Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                <Button x:Name="RotateGroupButton" Style="{StaticResource IconButton}"
+                        Width="18" Height="18" FontSize="9" Content="&#xE72C;"
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Click="RotateGroup_Click" AutomationProperties.Name="轮换事务"
+                        ToolTip="轮换选中的事务"/>
+            </Grid>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <StackPanel x:Name="GroupsPanel" Margin="0,1,0,0"/>
+            </ScrollViewer>
+            <Grid Grid.Row="2" Margin="0,3,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="18"/>
+                </Grid.ColumnDefinitions>
+                <Grid>
+                    <TextBox x:Name="GroupInput" FontSize="9.5" MaxLength="40"
+                             AutomationProperties.Name="新事务"
+                             TextChanged="GroupInput_TextChanged"
+                             GotKeyboardFocus="GroupInput_FocusChanged"
+                             LostKeyboardFocus="GroupInput_FocusChanged"
+                             PreviewKeyDown="GroupInput_PreviewKeyDown"/>
+                    <TextBlock x:Name="GroupPlaceholder" Text="新事务" FontSize="9"
+                               Foreground="{DynamicResource FaintBrush}" IsHitTestVisible="False"
+                               VerticalAlignment="Center"/>
+                </Grid>
+                <Button x:Name="AddGroupButton" Grid.Column="1" Style="{StaticResource IconButton}"
+                        Width="18" Height="18" FontSize="8" Padding="0" Content="&#xE710;"
+                        Foreground="{DynamicResource AccentBrush}" IsEnabled="False"
+                        Click="AddGroup_Click" AutomationProperties.Name="添加事务" ToolTip="添加事务"/>
+            </Grid>
+        </Grid>
+
+        <Border Grid.Column="1" Width="1" Background="{DynamicResource PaperLineBrush}" Opacity="0.55"
+                VerticalAlignment="Stretch" Margin="0,3,0,3"/>
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="22"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="31"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="事项" FontSize="9" FontWeight="SemiBold"
+                       Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+            <ScrollViewer x:Name="ItemsScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <StackPanel x:Name="ItemsPanel" Margin="0,1,0,0"/>
+            </ScrollViewer>
+            <Grid Grid.Row="2" Margin="0,3,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="18"/>
+                </Grid.ColumnDefinitions>
+                <Grid>
+                    <TextBox x:Name="ItemInput" FontSize="9.5" MaxLength="120"
+                             AutomationProperties.Name="新事项"
+                             TextChanged="ItemInput_TextChanged"
+                             GotKeyboardFocus="ItemInput_FocusChanged"
+                             LostKeyboardFocus="ItemInput_FocusChanged"
+                             PreviewKeyDown="ItemInput_PreviewKeyDown"/>
+                    <TextBlock x:Name="ItemPlaceholder" Text="新事项" FontSize="9"
+                               Foreground="{DynamicResource FaintBrush}" IsHitTestVisible="False"
+                               VerticalAlignment="Center"/>
+                </Grid>
+                <Button x:Name="AddItemButton" Grid.Column="1" Style="{StaticResource IconButton}"
+                        Width="18" Height="18" FontSize="8" Padding="0" Content="&#xE710;"
+                        Foreground="{DynamicResource AccentBrush}" IsEnabled="False"
+                        Click="AddItem_Click" AutomationProperties.Name="添加事项" ToolTip="添加事项"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
