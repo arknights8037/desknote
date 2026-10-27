@@ -15,8 +15,8 @@ public partial class BillsView : UserControl
     private readonly DataStore _store;
     private readonly List<RadioButton> _categoryButtons = new();
     private bool _initialized;
-    private DateTime _billDate = DateTime.Today;
-    private DateTime _calendarMonth = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private DateTime _billDate = DayClock.Today;
+    private DateTime _calendarMonth = new(DayClock.Today.Year, DayClock.Today.Month, 1);
     private string _selectedCategory = "餐饮";
     private BillItem? _editing;
     private string _section = "details";
@@ -50,6 +50,20 @@ public partial class BillsView : UserControl
         BuildBillsList();
         WeekSummary.Refresh();
         MonthSummary.Refresh();
+    }
+
+    public void OnDayChanged()
+    {
+        if (_editing is null && _billDate.Date < DayClock.Today)
+        {
+            _billDate = DayClock.Today;
+            _calendarMonth = new DateTime(_billDate.Year, _billDate.Month, 1);
+            UpdateDateButton();
+        }
+        RefreshTotals();
+        BuildBillsList();
+        WeekSummary.OnDayChanged();
+        MonthSummary.OnDayChanged();
     }
 
     public void RefreshAll(bool scrollTop)
@@ -130,7 +144,7 @@ public partial class BillsView : UserControl
 
     private void RefreshTotals()
     {
-        var today = DateTime.Today;
+        var today = DayClock.Today;
         var todayTotal = _data.Bills.Where(x => x.Date.Date == today).Sum(x => x.Amount);
         TodayTotalText.Text = Money(todayTotal);
 
@@ -421,7 +435,7 @@ public partial class BillsView : UserControl
         AmountInput.Clear();
         NoteInput.Clear();
         if (wasEditing)
-            _billDate = DateTime.Today;
+            _billDate = DayClock.Today;
         UpdateDateButton();
         SetEditMode(false);
         RefreshAll(true);
@@ -476,7 +490,7 @@ public partial class BillsView : UserControl
     {
         if (_editing is not null)
             FormHintText.Text = $"正在修改 {_billDate:M月d日} 的账单 · Enter 保存";
-        else if (_billDate.Date == DateTime.Today)
+        else if (_billDate.Date == DayClock.Today)
             FormHintText.Text = "记录今天的开销 · Enter 保存";
         else
             FormHintText.Text = $"记录 {_billDate:M月d日} 的开销 · Enter 保存";
@@ -487,7 +501,7 @@ public partial class BillsView : UserControl
         _editing = null;
         AmountInput.Clear();
         NoteInput.Clear();
-        _billDate = DateTime.Today;
+        _billDate = DayClock.Today;
         UpdateDateButton();
         SetEditMode(false);
         UpdateAddButtonState();
@@ -505,7 +519,7 @@ public partial class BillsView : UserControl
     {
         if (int.TryParse((sender as FrameworkElement)?.Tag?.ToString(), out var days))
         {
-            _billDate = DateTime.Today.AddDays(-days);
+            _billDate = DayClock.Today.AddDays(-days);
             _calendarMonth = new DateTime(_billDate.Year, _billDate.Month, 1);
             UpdateDateButton();
             DatePopup.IsOpen = false;
@@ -520,7 +534,7 @@ public partial class BillsView : UserControl
 
     private void CalendarNext_Click(object sender, RoutedEventArgs e)
     {
-        var currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        var currentMonth = new DateTime(DayClock.Today.Year, DayClock.Today.Month, 1);
         if (_calendarMonth >= currentMonth) return;
         _calendarMonth = _calendarMonth.AddMonths(1);
         BuildCalendar();
@@ -529,7 +543,7 @@ public partial class BillsView : UserControl
     private void BuildCalendar()
     {
         CalendarMonthText.Text = _calendarMonth.ToString("yyyy年M月", Zh);
-        var currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        var currentMonth = new DateTime(DayClock.Today.Year, DayClock.Today.Month, 1);
         CalendarNextButton.IsEnabled = _calendarMonth < currentMonth;
         CalendarDaysGrid.Children.Clear();
 
@@ -539,9 +553,9 @@ public partial class BillsView : UserControl
         {
             var date = start.AddDays(i);
             var selected = date.Date == _billDate.Date;
-            var today = date.Date == DateTime.Today;
+            var today = date.Date == DayClock.Today;
             var inMonth = date.Month == _calendarMonth.Month;
-            var future = date.Date > DateTime.Today;
+            var future = date.Date > DayClock.Today;
 
             var button = new Button
             {
@@ -616,17 +630,17 @@ public partial class BillsView : UserControl
 
     private static string RelDay(DateTime day)
     {
-        if (day.Date == DateTime.Today) return "今天";
-        if (day.Date == DateTime.Today.AddDays(-1)) return "昨天";
-        if (day.Year == DateTime.Today.Year) return day.ToString("M月d日");
+        if (day.Date == DayClock.Today) return "今天";
+        if (day.Date == DayClock.Today.AddDays(-1)) return "昨天";
+        if (day.Year == DayClock.Today.Year) return day.ToString("M月d日");
         return day.ToString("yyyy年M月d日");
     }
 
     private static string DayLabel(DateTime day)
     {
-        var prefix = day.Date == DateTime.Today ? "今天 · " :
-            day.Date == DateTime.Today.AddDays(-1) ? "昨天 · " : "";
-        var year = day.Year == DateTime.Today.Year ? "" : day.ToString("yyyy年");
+        var prefix = day.Date == DayClock.Today ? "今天 · " :
+            day.Date == DayClock.Today.AddDays(-1) ? "昨天 · " : "";
+        var year = day.Year == DayClock.Today.Year ? "" : day.ToString("yyyy年");
         return $"{prefix}{year}{day.ToString("M月d日", Zh)} {day.ToString("dddd", Zh)}";
     }
 

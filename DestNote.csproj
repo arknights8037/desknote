@@ -12,8 +12,8 @@
     <RootNamespace>DestNote</RootNamespace>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>1.4.0</Version>
-    <FileVersion>1.4.0.0</FileVersion>
+    <Version>1.5.0</Version>
+    <FileVersion>1.5.0.0</FileVersion>
     <Company>DestNote</Company>
     <Product>轻笺</Product>
     <Description>轻笺 · 会记账的桌面便签</Description>

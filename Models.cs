@@ -104,10 +104,10 @@ public sealed class NoteItem : INotifyPropertyChanged
 
     [JsonIgnore]
     public int SortBucket => _collectedAt is not null ? 0 :
-        _deferredUntil is { } deferred && deferred.Date > DateTime.Today ? 2 : 1;
+        _deferredUntil is { } deferred && deferred.Date > DayClock.Today ? 2 : 1;
 
     [JsonIgnore]
-    public string DeferLabel => _deferredUntil is { } deferred && deferred.Date > DateTime.Today
+    public string DeferLabel => _deferredUntil is { } deferred && deferred.Date > DayClock.Today
         ? deferred.ToString("M/d")
         : "";
 
@@ -134,16 +134,23 @@ public sealed class NoteItem : INotifyPropertyChanged
     {
         get
         {
-            var span = DateTime.Now.Date - CreatedAt.Date;
+            var span = DayClock.Today - DayClock.BusinessDayOf(CreatedAt);
             if (span.Days <= 0) return CreatedAt.ToString("今天 HH:mm", CultureInfo.GetCultureInfo("zh-CN"));
             if (span.Days == 1) return "昨天 " + CreatedAt.ToString("HH:mm");
-            if (CreatedAt.Year == DateTime.Today.Year) return CreatedAt.ToString("M月d日 HH:mm");
+            if (CreatedAt.Year == DayClock.Today.Year) return CreatedAt.ToString("M月d日 HH:mm");
             return CreatedAt.ToString("yyyy年M月d日");
         }
     }
 
     [JsonIgnore]
     public string DoneHint => DoneAt is null ? "未完成" : "完成于 " + DoneAt.Value.ToString("M月d日 HH:mm");
+
+    public void RefreshDay()
+    {
+        OnPropertyChanged(nameof(SortBucket));
+        OnPropertyChanged(nameof(DeferLabel));
+        OnPropertyChanged(nameof(CreatedHint));
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -175,7 +182,7 @@ public sealed class PlanItem
 public sealed class BillItem
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public DateTime Date { get; set; } = DateTime.Today;
+    public DateTime Date { get; set; } = DayClock.Today;
     public decimal Amount { get; set; }
     public string Category { get; set; } = "餐饮";
     public string Note { get; set; } = "";
@@ -277,7 +284,7 @@ public static class StatsCalculator
             return new ChartBar(day.ToString("ddd", CultureInfo.GetCultureInfo("zh-CN")).Replace("周", ""), total);
         }).ToList();
 
-        var today = (asOf ?? DateTime.Today).Date;
+        var today = (asOf ?? DayClock.Today).Date;
         var elapsed = end.Date < today ? 7 : Math.Clamp((today - start).Days + 1, 1, 7);
         var peak = inPeriod.GroupBy(x => x.Date.Date)
             .Select(g => new { Date = g.Key, Amount = g.Sum(x => x.Amount) })
@@ -311,7 +318,7 @@ public static class StatsCalculator
         }
 
         var daysInMonth = end.Day;
-        var today = (asOf ?? DateTime.Today).Date;
+        var today = (asOf ?? DayClock.Today).Date;
         var elapsed = end.Date < today ? daysInMonth : Math.Clamp(today.Day, 1, daysInMonth);
         var peak = inPeriod.GroupBy(x => x.Date.Date)
             .Select(g => new { Date = g.Key, Amount = g.Sum(x => x.Amount) })

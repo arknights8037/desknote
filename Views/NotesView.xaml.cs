@@ -53,6 +53,8 @@ public partial class NotesView : UserControl
     private void Refresh()
     {
         if (!_initialized) return;
+        foreach (var note in _data.Notes)
+            note.RefreshDay();
         _view.Refresh();
         UpdateChrome();
     }

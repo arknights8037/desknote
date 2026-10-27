@@ -12,9 +12,10 @@ public partial class SummaryView : UserControl
     private readonly DataStore _store;
     private bool _isMonth;
     private bool _initialized;
-    private DateTime _anchor = DateTime.Today;
-    private DateTime _lastStart = DateTime.Today;
-    private DateTime _lastEnd = DateTime.Today;
+    private DateTime _anchor = DayClock.Today;
+    private DateTime _lastStart = DayClock.Today;
+    private DateTime _lastEnd = DayClock.Today;
+    private bool _wasCurrent;
 
     public SummaryView()
     {
@@ -26,7 +27,7 @@ public partial class SummaryView : UserControl
     public void Configure(bool isMonth)
     {
         _isMonth = isMonth;
-        _anchor = DateTime.Today;
+        _anchor = DayClock.Today;
         _initialized = true;
         BackCurrent.Content = isMonth ? "回到本月" : "回到本周";
         FootNote.Text = isMonth ? "按自然月统计 · 周段按日期划分" : "周从周一开始统计";
@@ -37,7 +38,7 @@ public partial class SummaryView : UserControl
     {
         if (!_initialized) return;
 
-        var today = DateTime.Today;
+        var today = DayClock.Today;
         var summary = _isMonth
             ? StatsCalculator.BuildMonth(_data.Bills, _anchor)
             : StatsCalculator.BuildWeek(_data.Bills, _anchor);
@@ -71,6 +72,14 @@ public partial class SummaryView : UserControl
         Chart.SetBars(summary.Bars);
         BuildCategories(summary);
         BuildInsight(summary);
+        _wasCurrent = isCurrent;
+    }
+
+    public void OnDayChanged()
+    {
+        if (_wasCurrent)
+            _anchor = DayClock.Today;
+        Refresh();
     }
 
     private void UpdateCompare(PeriodSummary summary)
@@ -214,7 +223,7 @@ public partial class SummaryView : UserControl
 
     private void BackCurrent_Click(object sender, RoutedEventArgs e)
     {
-        _anchor = DateTime.Today;
+        _anchor = DayClock.Today;
         Refresh();
     }
 

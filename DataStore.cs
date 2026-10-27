@@ -120,7 +120,57 @@ public sealed class DataStore : IDisposable
             }
         }
 
+        if (data.Version < 2)
+        {
+            var corrected = MigrateToFourAm(data);
+            data.Version = 2;
+            SaveNow();
+            if (corrected > 0)
+            {
+                var note = $"已按凌晨4点日界线修正 {corrected} 笔账单。";
+                LoadWarning = string.IsNullOrWhiteSpace(LoadWarning) ? note : LoadWarning + " " + note;
+            }
+        }
+
         return data;
+    }
+
+    private int MigrateToFourAm(AppData data)
+    {
+        // The old app assigned bills to the calendar date at midnight.
+        // Bills entered between 00:00 and 04:00 for the default date now
+        // belong to the previous logical day.
+        var corrected = 0;
+        foreach (var bill in data.Bills)
+        {
+            var created = bill.CreatedAt;
+            if (created != default && created.TimeOfDay < TimeSpan.FromHours(DayClock.StartHour) &&
+                bill.Date.Date == created.Date)
+            {
+                bill.Date = bill.Date.Date.AddDays(-1);
+                bill.UpdatedAt = DateTime.Now;
+                corrected++;
+            }
+        }
+
+        if (corrected > 0)
+        {
+            try
+            {
+                if (File.Exists(_dataPath))
+                {
+                    var backup = Path.Combine(_dailyBackupDirectory,
+                        $"data-before-0400-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+                    File.Copy(_dataPath, backup, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError("pre day-boundary backup", ex);
+            }
+        }
+
+        return corrected;
     }
 
     public void QueueSave()
@@ -230,7 +280,7 @@ public sealed class DataStore : IDisposable
         try
         {
             if (!File.Exists(_dataPath)) return;
-            var target = Path.Combine(_dailyBackupDirectory, $"data-{DateTime.Today:yyyyMMdd}.json");
+            var target = Path.Combine(_dailyBackupDirectory, $"data-{DayClock.Today:yyyyMMdd}.json");
             if (!File.Exists(target))
             {
                 File.Copy(_dataPath, target, true);

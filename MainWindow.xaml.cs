@@ -32,6 +32,7 @@ public partial class MainWindow : Window
     private bool _trayHintShown;
     private Action? _toastAction;
     private DispatcherTimer? _toastTimer;
+    private DispatcherTimer? _dayRolloverTimer;
 
     public MainWindow(bool startHidden = false)
     {
@@ -62,8 +63,7 @@ public partial class MainWindow : Window
         };
         Closing += MainWindow_Closing;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
-        DateText.Text = DateTime.Today.ToString("M月d日 · dddd",
-            System.Globalization.CultureInfo.GetCultureInfo("zh-CN"));
+        UpdateDateText();
     }
 
     private IntPtr WindowHandle => new WindowInteropHelper(this).Handle;
@@ -98,6 +98,7 @@ public partial class MainWindow : Window
             CenterOnScreen();
         ApplyTrayOnlyStyle(WindowHandle);
         _ready = true;
+        ScheduleDayRollover();
 
         if (_cardMode)
         {
@@ -177,6 +178,36 @@ public partial class MainWindow : Window
         var area = SystemParameters.WorkArea;
         Left = area.Left + Math.Max(0, (area.Width - ActualWidth) / 2);
         Top = area.Top + Math.Max(0, (area.Height - ActualHeight) / 2);
+    }
+
+    private void UpdateDateText()
+    {
+        DateText.Text = DayClock.Today.ToString("M月d日 · dddd",
+            System.Globalization.CultureInfo.GetCultureInfo("zh-CN"));
+    }
+
+    private void ScheduleDayRollover()
+    {
+        _dayRolloverTimer?.Stop();
+        var interval = DayClock.UntilNextBoundary(DateTime.Now) + TimeSpan.FromMilliseconds(350);
+        if (interval <= TimeSpan.Zero)
+            interval = TimeSpan.FromMinutes(1);
+        _dayRolloverTimer = new DispatcherTimer { Interval = interval };
+        _dayRolloverTimer.Tick += (_, _) =>
+        {
+            _dayRolloverTimer?.Stop();
+            RefreshForNewDay();
+            ScheduleDayRollover();
+        };
+        _dayRolloverTimer.Start();
+    }
+
+    private void RefreshForNewDay()
+    {
+        UpdateDateText();
+        NotesPage.RefreshView();
+        BillsPage.OnDayChanged();
+        CardSurface.RefreshAll();
     }
 
     private void ApplyModeVisibility()
@@ -343,6 +374,7 @@ public partial class MainWindow : Window
         SaveWindowState();
 
         _toastTimer?.Stop();
+        _dayRolloverTimer?.Stop();
         if (_hotkeyRegistered)
         {
             NativeMethods.UnregisterHotKey(WindowHandle, HotkeyId);

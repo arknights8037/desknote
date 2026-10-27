@@ -56,6 +56,8 @@ public partial class CardView : UserControl
 
     public void RefreshAll()
     {
+        foreach (var note in _data.Notes)
+            note.RefreshDay();
         _notesView.Refresh();
         RefreshBills();
         PlanPage.RefreshAll();
@@ -359,7 +361,7 @@ public partial class CardView : UserControl
             return;
         }
 
-        note.DeferredUntil = DateTime.Today.AddDays(days);
+        note.DeferredUntil = DayClock.Today.AddDays(days);
         note.CollectedAt = null;
         _store.QueueSave();
         _notesView.Refresh();
@@ -378,10 +380,11 @@ public partial class CardView : UserControl
             return;
         }
 
-        var today = DateTime.Today;
+        var today = DayClock.Today;
         var cutoff = today.AddDays(-days);
         var notes = _data.Notes
-            .Where(x => !x.IsDone && x.CreatedAt.Date < today && (days == 0 || x.CreatedAt.Date >= cutoff))
+            .Where(x => !x.IsDone && DayClock.BusinessDayOf(x.CreatedAt) < today &&
+                        (days == 0 || DayClock.BusinessDayOf(x.CreatedAt) >= cutoff))
             .ToList();
 
         if (notes.Count == 0)
@@ -557,7 +560,7 @@ public partial class CardView : UserControl
         if (!TryAmount(out var amount)) return;
         _data.Bills.Add(new BillItem
         {
-            Date = DateTime.Today,
+            Date = DayClock.Today,
             Amount = Math.Round(amount, 2),
             Category = _category,
             Note = BillNoteInput.Text.Trim(),
@@ -590,7 +593,7 @@ public partial class CardView : UserControl
     private void RefreshBills()
     {
         var bills = _data.Bills
-            .Where(x => x.Date.Date == DateTime.Today)
+            .Where(x => x.Date.Date == DayClock.Today)
             .OrderBy(x => x.CreatedAt)
             .ToList();
 

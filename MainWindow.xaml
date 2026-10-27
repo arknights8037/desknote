@@ -192,7 +192,7 @@
                                 </Border>
                                 <TextBlock Text="关闭或最小化会收进托盘，程序仍在后台运行；从托盘菜单退出。所有数据只保存在本机。"
                                            Style="{StaticResource SettingsNote}" Margin="0,10,0,0"/>
-                                <TextBlock Text="轻笺 1.4  ·  Made for a lighter day" Style="{StaticResource SettingsNote}"
+                                <TextBlock Text="轻笺 1.5  ·  Made for a lighter day" Style="{StaticResource SettingsNote}"
                                            Margin="0,9,0,2"/>
                             </StackPanel>
                         </ScrollViewer>

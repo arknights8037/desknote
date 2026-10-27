@@ -30,6 +30,46 @@ internal static class SelfTest
         try
         {
             Directory.CreateDirectory(root);
+
+            Check("4am business day before boundary",
+                DayClock.BusinessDayOf(new DateTime(2026, 10, 27, 3, 59, 59)) == new DateTime(2026, 10, 26));
+            Check("4am business day at boundary",
+                DayClock.BusinessDayOf(new DateTime(2026, 10, 27, 4, 0, 0)) == new DateTime(2026, 10, 27));
+            Check("4am next boundary before 4",
+                DayClock.NextBoundary(new DateTime(2026, 10, 27, 3, 0, 0)) == new DateTime(2026, 10, 27, 4, 0, 0));
+            Check("4am next boundary after 4",
+                DayClock.NextBoundary(new DateTime(2026, 10, 27, 5, 0, 0)) == new DateTime(2026, 10, 28, 4, 0, 0));
+
+            var migrationDir = Path.Combine(root, "migration");
+            Directory.CreateDirectory(migrationDir);
+            var oldData = new AppData { Version = 1 };
+            oldData.Bills.Add(new BillItem
+            {
+                Date = new DateTime(2026, 10, 27),
+                CreatedAt = new DateTime(2026, 10, 27, 0, 6, 52),
+                Amount = 21m,
+                Category = "餐饮",
+                Note = "午餐"
+            });
+            oldData.Bills.Add(new BillItem
+            {
+                Date = new DateTime(2026, 10, 20),
+                CreatedAt = new DateTime(2026, 10, 27, 0, 18, 0),
+                Amount = 5m,
+                Category = "餐饮",
+                Note = "手动补记"
+            });
+            var oldStore = new DataStore(migrationDir) { Data = oldData };
+            oldStore.SaveNow();
+            oldStore.Dispose();
+            var migratedStore = new DataStore(migrationDir);
+            var migratedData = migratedStore.Load();
+            Check("4am migration shifts midnight bill", migratedData.Bills[0].Date == new DateTime(2026, 10, 26));
+            Check("4am migration keeps manual date", migratedData.Bills[1].Date == new DateTime(2026, 10, 20));
+            Check("4am migration version", migratedData.Version == 2);
+            Check("4am migration backup", Directory.GetFiles(Path.Combine(migrationDir, "backups"),
+                "data-before-0400-*.json").Length == 1);
+
             var data = new AppData();
             data.Notes.Add(new NoteItem
             {
